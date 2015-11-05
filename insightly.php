@@ -775,6 +775,81 @@ class Insightly{
   }
 
   /**
+   * Gets a list of leads
+   *
+   * @param array $options
+   * @return mixed
+   * @link https://api.insight.ly/v2.1/Help/Api/GET-Leads_ids_email_tag
+   */
+  public function getLeads($options = null){
+    $email = isset($options["email"]) ? $options["email"] : null;
+    $tag = isset($options["tag"]) ? $options["tag"] : null;
+    $ids = isset($options["ids"]) ? $options["ids"] : null;
+
+    $request = $this->GET("/v2.1/Leads");
+
+    // handle standard OData options
+    $this->buildODataQuery($request, $options);
+
+    // handle other options
+    if($email != null){
+      $request->queryParam("email", $email);
+    }
+    if($tag != null){
+      $request->queryParam("tag", $tag);
+    }
+    if($ids != null){
+      $s = "";
+      foreach($ids as $key => $value){
+        if($key > 0){
+          $s = $s . ",";
+        }
+        $s = $s . $value;
+      }
+      $request->queryParam("ids", $s);
+    }
+
+    return $request->asJSON();
+  }
+
+  /**
+   * Gets a contact
+   *
+   * @param int $id
+   * @return mixed
+   * @link https://api.insight.ly/v2.1/Help/Api/GET-Leads-id
+   */
+  public function getLead($id){
+    return $this->GET("/v2.1/Leads/" . $id)->asJSON();
+  }
+
+  /**
+   * Adds a contact
+   *
+   * @param stdClass $contact
+   * @return mixed
+   * @link https://api.insight.ly/v2.1/Help/Api/POST-Contacts
+   */
+  public function addLead($lead){
+    $url_path = "/v2.1/Leads";
+    $request = null;
+
+    if(isset($lead->LEAD_ID) && $lead->LEAD_ID > 0){
+      $request = $this->PUT($url_path);
+    }
+    else{
+      $request = $this->POST($url_path);
+    }
+
+    return $request->body($lead)->asJSON();
+  }
+
+  public function deleteLeads($id){
+    $this->DELETE("/v2.1/Leads/$id")->asString();
+    return true;
+  }
+
+  /**
    * Add OData query filters to a request
    * 
    * Accepted options:
